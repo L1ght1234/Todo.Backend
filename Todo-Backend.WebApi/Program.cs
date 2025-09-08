@@ -1,9 +1,6 @@
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Todo_Backend.BLL.Behaviors.Validation;
 using Todo_Backend.BLL.Mapping.Todos;
 using Todo_Backend.BLL.Queries.Todos.GetAll;
-using Todo_Backend.BLL.Validators.Todos;
 using Todo_Backend.DAL.Data;
 using Todo_Backend.DAL.Repositories;
 
