@@ -24,12 +24,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(GetAllTodosHandler).Assembly);
-    //cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
 builder.Services.AddAutoMapper(typeof(TodoProfile).Assembly);
-
-builder.Services.AddValidatorsFromAssembly(typeof(CreateTodoRequestValidator).Assembly);
 
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
