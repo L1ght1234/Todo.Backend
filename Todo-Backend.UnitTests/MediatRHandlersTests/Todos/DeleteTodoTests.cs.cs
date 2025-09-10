@@ -20,7 +20,6 @@ public class DeleteTodoHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnOkResult_WhenTodoIsDeleted()
     {
-        // Arrange
         var todoId = Guid.NewGuid();
         var command = new DeleteTodoCommand(todoId);
 
@@ -28,19 +27,16 @@ public class DeleteTodoHandlerTests
             .Setup(r => r.DeleteAsync(todoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal("Success", result.Value);
+        Assert.Equal("Operation success", result.Value);
         _todoRepositoryMock.Verify(r => r.DeleteAsync(todoId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnFailResult_WhenRepositoryReturnsFalse()
     {
-        // Arrange
         var todoId = Guid.NewGuid();
         var command = new DeleteTodoCommand(todoId);
 
@@ -48,19 +44,16 @@ public class DeleteTodoHandlerTests
             .Setup(r => r.DeleteAsync(todoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsFailed);
-        Assert.Contains(result.Errors, e => e.Message == "Error while deleting todo");
+        Assert.Contains(result.Errors, e => e.Message == "Can not delete todo");
         _todoRepositoryMock.Verify(r => r.DeleteAsync(todoId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_ShouldLogError_WhenRepositoryReturnsFalse()
     {
-        // Arrange
         var todoId = Guid.NewGuid();
         var command = new DeleteTodoCommand(todoId);
 
@@ -68,18 +61,15 @@ public class DeleteTodoHandlerTests
             .Setup(r => r.DeleteAsync(todoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsFailed);
 
-        // Проверяем, что логгер был вызван с уровнем Error
         _loggerMock.Verify(
             l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Error while deleting todo")),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Can not delete todo")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

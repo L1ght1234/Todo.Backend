@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
-using FluentResults;
+﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Todo_Backend.BLL.DTOs.Todos;
@@ -30,7 +25,6 @@ public class GetAllTodosHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnOkResult_WhenTodosExist()
     {
-        // Arrange
         var todos = new List<Todo>
         {
             new Todo { Id = Guid.NewGuid(), Title = "Test 1", Status = Status.Todo },
@@ -53,10 +47,8 @@ public class GetAllTodosHandlerTests
 
         var query = new GetAllTodosQuery();
 
-        // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(2, result.Value.Count);
         Assert.Equal("Test 1", result.Value[0].Title);
@@ -67,17 +59,14 @@ public class GetAllTodosHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnFailResult_WhenTodosIsNull()
     {
-        // Arrange
         _todoRepositoryMock
             .Setup(r => r.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((List<Todo>?)null);
 
         var query = new GetAllTodosQuery();
 
-        // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsFailed);
         Assert.Contains(result.Errors, e => e.Message == "There are no todos");
         _todoRepositoryMock.Verify(r => r.GetAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -86,17 +75,14 @@ public class GetAllTodosHandlerTests
     [Fact]
     public async Task Handle_ShouldLogError_WhenTodosIsNull()
     {
-        // Arrange
         _todoRepositoryMock
             .Setup(r => r.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((List<Todo>?)null);
 
         var query = new GetAllTodosQuery();
 
-        // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsFailed);
 
         _loggerMock.Verify(

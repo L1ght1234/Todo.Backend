@@ -1,6 +1,7 @@
 ﻿using FluentResults;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Todo_Backend.BLL.Constants;
 using Todo_Backend.DAL.Repositories;
 
 namespace Todo_Backend.BLL.Commands.Todos.Delete;
@@ -20,11 +21,11 @@ public class DeleteTodoHandler : IRequestHandler<DeleteTodoCommand, Result<strin
 
         if (!result)
         {
-            var errorMsg = "Error while deleting todo";
+            var errorMsg = TodoConstants.DeleteTodoError;
             _logger.LogError(errorMsg);
             return Result.Fail(errorMsg);
         }
 
-        return Result.Ok("Success");
+        return Result.Ok(TodoConstants.OperationSuccess);
     }
 }

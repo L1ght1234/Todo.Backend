@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Todo_Backend.BLL.Commands.Todos.UpdateStatus;
@@ -15,17 +16,17 @@ public class UpdateTodoStatusHandlerTests
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<ITodoRepository> _todoRepositoryMock = new();
     private readonly Mock<ILogger<UpdateTodoStatusHandler>> _loggerMock = new();
+    private readonly Mock<IValidator<UpdateTodoStatusRequest>> _valodatorMock = new();
     private readonly UpdateTodoStatusHandler _handler;
 
     public UpdateTodoStatusHandlerTests()
     {
-        _handler = new UpdateTodoStatusHandler(_mapperMock.Object, _todoRepositoryMock.Object, _loggerMock.Object);
+        _handler = new UpdateTodoStatusHandler(_mapperMock.Object, _todoRepositoryMock.Object, _loggerMock.Object, _valodatorMock.Object);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnOkResult_WhenStatusUpdated()
     {
-        // Arrange
         var todoId = Guid.NewGuid();
         var updateRequest = new UpdateTodoStatusRequest(Status.Done);
         var command = new UpdateTodoStatusCommand(todoId, updateRequest);
@@ -41,10 +42,8 @@ public class UpdateTodoStatusHandlerTests
             .Setup(m => m.Map<GetTodoResponse>(updatedTodo))
             .Returns(response);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(todoId, result.Value.id);
         Assert.Equal(Status.Done, result.Value.Status);
@@ -54,7 +53,6 @@ public class UpdateTodoStatusHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnFailResult_WhenRepositoryReturnsNull()
     {
-        // Arrange
         var todoId = Guid.NewGuid();
         var updateRequest = new UpdateTodoStatusRequest(Status.InProgress);
         var command = new UpdateTodoStatusCommand(todoId, updateRequest);
@@ -63,19 +61,16 @@ public class UpdateTodoStatusHandlerTests
             .Setup(r => r.UpdateStatusAsync(todoId, Status.InProgress, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Todo?)null);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsFailed);
-        Assert.Contains(result.Errors, e => e.Message == "Error while updating todo status");
+        Assert.Contains(result.Errors, e => e.Message == "Can not update todo");
         _todoRepositoryMock.Verify(r => r.UpdateStatusAsync(todoId, Status.InProgress, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_ShouldLogError_WhenRepositoryReturnsNull()
     {
-        // Arrange
         var todoId = Guid.NewGuid();
         var updateRequest = new UpdateTodoStatusRequest(Status.Todo);
         var command = new UpdateTodoStatusCommand(todoId, updateRequest);
@@ -84,17 +79,15 @@ public class UpdateTodoStatusHandlerTests
             .Setup(r => r.UpdateStatusAsync(todoId, Status.Todo, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Todo?)null);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         Assert.True(result.IsFailed);
 
         _loggerMock.Verify(
             l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Error while updating todo status")),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Can not update todo")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

@@ -1,8 +1,12 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Todo_Backend.BLL.Mapping.Todos;
 using Todo_Backend.BLL.Queries.Todos.GetAll;
+using Todo_Backend.BLL.Validators.Todos;
 using Todo_Backend.DAL.Data;
 using Todo_Backend.DAL.Repositories;
+using Todo_Backend.Extensions;
+using Todo_Backend.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +31,11 @@ builder.Services.AddAutoMapper(typeof(TodoProfile).Assembly);
 
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
+builder.Services.AddValidatorsFromAssembly(typeof(CreateTodoRequestValidator).Assembly);
+
+builder.Services.AddOpenTelemetryTracing();
+builder.Logging.AddOpenTelemetryLogging();
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -49,6 +58,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
 app.UseCors();
 app.UseHttpsRedirection();
 app.MapControllers();
