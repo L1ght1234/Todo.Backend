@@ -3,5 +3,5 @@
 namespace Todo_Backend.BLL.DTOs.Todos;
 public record CreateTodoRequest(
     string Title,
-    string? Deadline,
+    DateTime? Deadline,
     Status Status);
